@@ -63,38 +63,80 @@ const toggleSpinner = isLoading =>{
         loadSection.classList.add('d-none');
     }
 }
+document.getElementById('sort-by-date').addEventListener
+    ('click', function () {
 
-function sortCards() {
-  // Select all the card elements
-  const cards = document.querySelectorAll('.card');
+        const sortAllData = () => {
+            const spinner = document.querySelector('.spinner-border');
+            spinner.classList.add('d-block');
 
-  cards.forEach(card => {
-        card.classList.add('col-sm-6', 'col-md-4', 'col-lg-4', 'mb-4');
-        card.classList.remove('h-100');
-    });
+            const itemContainer = document.getElementById('ai-container');
+            itemContainer.innerHTML = '';
 
-  // Convert the NodeList to an array
-  const cardsArray = Array.from(cards);
+            url = 'https://openapi.programming-hero.com/api/ai/tools'
+            fetch(url)
+                .then(response => response.json())
 
-  // Sort the array based on the data-date attribute value
-  cardsArray.sort((a, b) => {
-    const dateA = new Date(a.dataset.date.split('-').reverse().join('-'));
-    const dateB = new Date(b.dataset.date.split('-').reverse().join('-'));
-    return dateB - dateA;
-  });
+                .then(allData => {
+                    spinner.classList.remove('d-block');
+                    const sortedData = allData.data.tools.sort((a, b) =>
+                    new Date(b.published_in) - new Date(a.published_in));
+                    displayItemData(sortedData);
+                })
 
-  // Loop through the sorted array and append each card element to its parent container
-  const parent = document.querySelector('.card-container');
-  cardsArray.forEach(card => {
-    parent.appendChild(card);
-  });
-}
+                .catch(error => {
+                    spinner.classList.remove('d-block');
+                    console.log('error:' + error)
+                });
+        }
 
+        const displayItemData = (dataItem) => {
 
-document.getElementById('sort-by-date').addEventListener('click', function(){
-        sortCards();
-        
-});
+            // const btnSeeMore = document.getElementById('btnSeeMore');
+            // btnSeeMore.style.display = 'none';
+
+            document.getElementById('btn-show-all').style.display = 'none';
+
+            const itemContainer = document.getElementById('ai-container')
+
+            for (item of dataItem.slice(0, 12)) {
+                const singleItem = document.createElement('div');
+                singleItem.classList.add('col');
+                singleItem.innerHTML = `
+                <div class="card h-100 p-3 uiItemClass">
+                    <img src="${item.image}" class="card-img-top rounded-3" alt="..." height="40%">
+                    <div class="card-body">
+                        <h4 class="card-title">Features</h4>
+                        
+                        <ol class="card-text">
+                            <li>${item.features[0]}</li>
+                            <li>${item.features[1]}</li>
+                            <li>${item.features[2] ? item.features[2] : 'Data not found'}</li>
+                        </ol>
+                        <hr>
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h5 class="card-title mb-2">${item.name}</h5>
+                                <p class="card-text mt-1">                          
+                                <i class="fa-sharp fa-solid fa-calendar-week"></i>
+                                ${item.published_in}</p>
+                            </div>
+
+                            <div class="mt-3">
+                                <button id="btn-details" onclick ="loadUniverseDetails('${item.id}')" class="btn-arrow border border-danger  modal-dialog-centered"  data-bs-toggle="modal" data-bs-target="#UniverseModal"><i class="fa-solid fa-arrow-right"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                `;
+            itemContainer.appendChild(singleItem);
+
+            }
+
+        }
+
+        sortAllData();
+    })
 document.getElementById('btn-show-all').addEventListener('click', function(){
     showAll();
 })
@@ -107,7 +149,7 @@ const loadUniverseDetails = async id =>{
 }
 
 const displayUniverseDetails = universe =>{
-    const UniverseModal =document.getElementById('UniverseModal');
+    // const UniverseModal =document.getElementById('UniverseModal');
     const universeDetail = document.getElementById('universe-detail');
     // UniverseModal.textContent='';
     universeDetail.textContent='';
